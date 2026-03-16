@@ -20,10 +20,7 @@
         <!-- FORMULARIO CREAR / EDITAR TAREA -->
         <div class="seccionTareas">
             <form id="formTarea" class="formSection">
-                <div class="formGroup">
-                    <label for="docTarea" class="formLabel">Documento del usuario</label>
-                    <input type="text" name="docTarea" id="docTarea" class="formInput" placeholder="Ingrese documento del usuario">
-                </div>
+                <h2 class="formTitle">Registro de Tareas</h2>
                 <div class="formGroup">
                     <label for="tituloTarea" class="formLabel">Titulo de la tarea</label>
                     <input type="text" name="tituloTarea" id="tituloTarea" class="formInput" placeholder="Ingrese el titulo">
@@ -41,6 +38,11 @@
                     </select>
                 </div>
                 <div class="formGroup">
+                    <p class="formLabel">Asignar usuarios</p>
+                    <div class="userSelector" id="userSelector">
+                    </div>
+                </div>
+                <div class="formGroup">
                     <button class="btn btnPrimary" id="btnCrearTarea" type="submit">Crear Tarea</button>
                 </div>
             </form>
@@ -48,8 +50,8 @@
 
         <!-- FILTROS AVANZADOS - RF01 -->
         <div class="seccionFiltros">
-            <h2>Filtros y Ordenamiento</h2>
             <div class="filtrosFila">
+                <h2 class="formTitle">Filtros y Ordenamiento</h2>
                 <div class="formGroup">
                     <label for="filtroUsuario" class="formLabel">Filtrar por Usuario</label>
                     <input type="text" id="filtroUsuario" class="formInput" placeholder="Documento del usuario">
