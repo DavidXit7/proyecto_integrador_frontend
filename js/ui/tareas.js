@@ -123,7 +123,6 @@ export const obtenerTodasLasTareas = () => todasLasTareas;
 
 const aplicarFiltros = async (contenedor) => {
     const criterios = {
-        documento: document.getElementById("filtroDocumento").value.trim().toLowerCase(),
         estado: document.getElementById("filtroEstado").value,
         usuario: document.getElementById("filtroUsuario").value.trim().toLowerCase()
     };
@@ -133,7 +132,6 @@ const aplicarFiltros = async (contenedor) => {
 };
 
 const limpiarFiltros = async (contenedor) => {
-    document.getElementById("filtroDocumento").value = "";
     document.getElementById("filtroEstado").value = "";
     document.getElementById("filtroUsuario").value = "";
     await armarListaTareas(contenedor, todasLasTareas);
@@ -142,13 +140,11 @@ const limpiarFiltros = async (contenedor) => {
 export const inicializarFiltros = (contenedor) => {
     const btnAplicar = document.getElementById("btnAplicarFiltros");
     const btnLimpiar = document.getElementById("btnLimpiarFiltros");
-    const inputDocumento = document.getElementById("filtroDocumento");
     const selectEstado = document.getElementById("filtroEstado");
     const inputUsuario = document.getElementById("filtroUsuario");
 
     btnAplicar.addEventListener("click", () => aplicarFiltros(contenedor));
     btnLimpiar.addEventListener("click", () => limpiarFiltros(contenedor));
-    inputDocumento.addEventListener("input", () => aplicarFiltros(contenedor));
     selectEstado.addEventListener("change", () => aplicarFiltros(contenedor));
     inputUsuario.addEventListener("input", () => aplicarFiltros(contenedor));
 };
