@@ -222,6 +222,35 @@
   justify-content: flex-end;
 }
 
+/* Botones específicos de usuario */
+.btnSuccess {
+  background-color: var(--color-success);
+  color: white;
+  border: none;
+}
+
+.btnSuccess:hover {
+  background-color: #059669;
+}
+
+.btnWarning {
+  background-color: var(--color-warning);
+  color: white;
+  border: none;
+}
+
+.btnWarning:hover {
+  background-color: #d97706;
+}
+
+/* Información de compartición */
+.tareaComparticion {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  margin-bottom: var(--spacing-xs);
+}
+
 /* ============================================
    MENSAJE DE SIN TAREAS
    ============================================ */

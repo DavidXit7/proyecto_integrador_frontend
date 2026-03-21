@@ -18,6 +18,38 @@ export const getTareasPorUsuario = async (documento) => {
   );
 };
 
+export const finalizarTareaParaUsuario = async (idTarea, documentoUsuario) => {
+  // Obtener la tarea actual
+  const tarea = await getTareasById(idTarea);
+  
+  // Siempre cambiar el estado a completada, sin importar si es individual o compartida
+  const tareaActualizada = {
+    ...tarea,
+    estado: "completada"
+  };
+  return await actualizarTarea(idTarea, tareaActualizada);
+};
+
+export const desvincularUsuarioDeTarea = async (idTarea, documentoUsuario) => {
+  // Obtener la tarea actual
+  const tarea = await getTareasById(idTarea);
+  
+  // Si la tarea está asignada a múltiples usuarios, desvincular solo a este usuario
+  // Si está asignada a un solo usuario, eliminar la tarea
+  if (tarea.usuarios_asignados && tarea.usuarios_asignados.length > 1) {
+    // Tarea compartida: desvincular usuario
+    const usuariosActualizados = tarea.usuarios_asignados.filter(doc => doc !== documentoUsuario);
+    const tareaActualizada = {
+      ...tarea,
+      usuarios_asignados: usuariosActualizados
+    };
+    return await actualizarTarea(idTarea, tareaActualizada);
+  } else {
+    // Tarea individual: eliminarla
+    return await eliminarTarea(idTarea);
+  }
+};
+
 export const crearTarea = async (tarea) => {
   // Obtenemos todas las tareas para calcular el siguiente ID numerico
   const todas = await getTareas();

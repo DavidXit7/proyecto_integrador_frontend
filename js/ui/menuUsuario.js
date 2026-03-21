@@ -2,7 +2,7 @@
 // MENÚ USUARIO - VISUALIZACIÓN DE TAREAS POR USUARIO
 // ============================================
 
-import { getUsuarios, getTareasPorUsuario } from "../api/index.js";
+import { getUsuarios, getTareasPorUsuario, finalizarTareaParaUsuario, desvincularUsuarioDeTarea } from "../api/index.js";
 import { armarCardTarea, armarListaTareas } from "./tareas.js";
 
 // Variables globales
@@ -55,8 +55,11 @@ const mostrarTareasUsuario = async () => {
         // Actualizar resumen
         actualizarResumen();
         
-        // Mostrar tareas
-        await armarListaTareas(listaTareasUsuario, tareasUsuario);
+        // Mostrar tareas con opciones de usuario
+        await armarListaTareas(listaTareasUsuario, tareasUsuario, {
+            esVistaUsuario: true,
+            usuarioActual: usuarioSeleccionado.documento
+        });
         
         // Mostrar mensaje si no hay tareas
         if (tareasUsuario.length === 0) {
@@ -91,17 +94,50 @@ const filtrarTareasPorEstado = async () => {
     const estadoSeleccionado = filtroEstadoUsuario.value;
     
     if (!estadoSeleccionado) {
-        await armarListaTareas(listaTareasUsuario, tareasUsuario);
+        await armarListaTareas(listaTareasUsuario, tareasUsuario, {
+            esVistaUsuario: true,
+            usuarioActual: usuarioSeleccionado.documento
+        });
     } else {
         const tareasFiltradas = tareasUsuario.filter(tarea => tarea.estado === estadoSeleccionado);
-        await armarListaTareas(listaTareasUsuario, tareasFiltradas);
+        await armarListaTareas(listaTareasUsuario, tareasFiltradas, {
+            esVistaUsuario: true,
+            usuarioActual: usuarioSeleccionado.documento
+        });
     }
 };
 
 // Limpiar filtros
 const limpiarFiltros = async () => {
     filtroEstadoUsuario.value = "";
-    await armarListaTareas(listaTareasUsuario, tareasUsuario);
+    await armarListaTareas(listaTareasUsuario, tareasUsuario, {
+        esVistaUsuario: true,
+        usuarioActual: usuarioSeleccionado.documento
+    });
+};
+
+// Finalizar tarea para el usuario
+const finalizarTarea = async (idTarea, documentoUsuario) => {
+    try {
+        await finalizarTareaParaUsuario(idTarea, documentoUsuario);
+        mostrarMensajeExito("Tarea finalizada correctamente");
+        await mostrarTareasUsuario(); // Recargar tareas
+    } catch (error) {
+        console.error("Error al finalizar tarea:", error);
+        mostrarMensajeError("No se pudo finalizar la tarea: " + error.message);
+    }
+};
+
+// Desvincular usuario de la tarea
+const desvincularTarea = async (idTarea, documentoUsuario) => {
+    try {
+        await desvincularUsuarioDeTarea(idTarea, documentoUsuario);
+        mostrarMensajeExito("Usuario desvinculado de la tarea correctamente");
+        await mostrarTareasUsuario(); // Recargar tareas
+    } catch (error) {
+        console.error("Error al desvincular tarea:", error);
+        mostrarMensajeError("No se pudo desvincular la tarea: " + error.message);
+    }
 };
 
 // Mostrar mensaje de error
@@ -125,6 +161,27 @@ const mostrarMensajeError = (mensaje) => {
     }, 3000);
 };
 
+// Mostrar mensaje de éxito
+const mostrarMensajeExito = (mensaje) => {
+    const successDiv = document.createElement("div");
+    successDiv.classList.add("msgExito");
+    successDiv.textContent = mensaje;
+    successDiv.style.position = "fixed";
+    successDiv.style.top = "20px";
+    successDiv.style.right = "20px";
+    successDiv.style.zIndex = "9999";
+    successDiv.style.padding = "var(--spacing-md)";
+    successDiv.style.backgroundColor = "var(--color-success)";
+    successDiv.style.color = "white";
+    successDiv.style.borderRadius = "var(--radius-md)";
+    
+    document.body.appendChild(successDiv);
+    
+    setTimeout(() => {
+        successDiv.remove();
+    }, 3000);
+};
+
 // Event Listeners
 selectorUsuario.addEventListener("change", (e) => {
     const documentoSeleccionado = e.target.value;
@@ -145,6 +202,36 @@ selectorUsuario.addEventListener("change", (e) => {
 btnVerTareas.addEventListener("click", mostrarTareasUsuario);
 filtroEstadoUsuario.addEventListener("change", filtrarTareasPorEstado);
 btnLimpiarFiltrosUsuario.addEventListener("click", limpiarFiltros);
+
+// Event delegation para botones de tareas
+listaTareasUsuario.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    const btnFinalizar = e.target.closest(".btnFinalizarTarea");
+    if (btnFinalizar) {
+        const idTarea = btnFinalizar.getAttribute("data-id");
+        const documentoUsuario = btnFinalizar.getAttribute("data-usuario");
+        
+        if (confirm("¿Está seguro de finalizar esta tarea?")) {
+            finalizarTarea(idTarea, documentoUsuario);
+        }
+    }
+    
+    const btnDesvincular = e.target.closest(".btnDesvincularTarea");
+    if (btnDesvincular) {
+        const idTarea = btnDesvincular.getAttribute("data-id");
+        const documentoUsuario = btnDesvincular.getAttribute("data-usuario");
+        const esTareaCompartida = btnDesvincular.textContent === "Desvincular";
+        
+        const mensaje = esTareaCompartida 
+            ? "¿Está seguro de desvincularse de esta tarea? La tarea continuará asignada a otros usuarios."
+            : "¿Está seguro de eliminar esta tarea?";
+            
+        if (confirm(mensaje)) {
+            desvincularTarea(idTarea, documentoUsuario);
+        }
+    }
+});
 
 // Inicialización
 document.addEventListener("DOMContentLoaded", () => {
