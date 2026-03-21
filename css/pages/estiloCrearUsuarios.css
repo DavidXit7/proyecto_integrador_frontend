@@ -69,6 +69,40 @@
   border: 2px solid var(--color-error) !important;
 }
 
+.ucFormInput.error {
+  border-color: var(--color-error) !important;
+}
+
+.ucFormInput.error:focus {
+  border-color: var(--color-error) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Clases de mensajes */
+.msgError {
+    color: var(--color-error);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.msgEncontrado {
+    color: var(--color-success);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.msgNoEncontrado {
+    color: var(--color-warning);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.msgDocTarea {
+    color: var(--color-error);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+}
+
 
 /* ============================================
    GÉNEROS (radio buttons)
