@@ -1,0 +1,282 @@
+/* ============================================
+   MENÚ USUARIO — VISUALIZACIÓN DE TAREAS POR USUARIO
+   ============================================ */
+
+/* ============================================
+   SECCIÓN PRINCIPAL
+   ============================================ */
+
+.seccionMenuUsuario {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+/* ============================================
+   SELECCIÓN DE USUARIO
+   ============================================ */
+
+.seleccionUsuario {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-gray-200);
+}
+
+.seleccionUsuario .btn.btnPrimary{
+  margin-top: var(--spacing-md);
+}
+
+.seleccionUsuario h2 {
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ============================================
+   FILTROS DE TAREAS
+   ============================================ */
+
+.filtrosTareas {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-gray-200);
+}
+
+.filtrosTareas h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.filtrosControles {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.filtrosControles .ucFormGroup {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ============================================
+   RESUMEN DE TAREAS
+   ============================================ */
+
+.resumenTareas {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-gray-200);
+}
+
+.resumenTareas h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.resumenContenido {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.resumenItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray-200);
+}
+
+.resumenLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-xs);
+}
+
+.resumenValor {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.resumenValor.pendiente {
+  color: var(--color-warning);
+}
+
+.resumenValor.enProceso {
+  color: var(--color-info);
+}
+
+.resumenValor.completada {
+  color: var(--color-success);
+}
+
+/* ============================================
+   LISTA DE TAREAS
+   ============================================ */
+
+.tareasUsuario {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-gray-200);
+}
+
+.tareasUsuario h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.listaTareas {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+/* Reutilizar estilos de cards de tareas existentes */
+.cardTarea {
+  background: var(--color-background);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  transition: var(--transition-base);
+}
+
+.cardTarea:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.tareaInfo {
+  margin-bottom: var(--spacing-md);
+}
+
+.tareaInfo p {
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.5;
+}
+
+.tareaTitulo {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.tareaDescripcion {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.tareaEstado {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+}
+
+.tareaEstado--pendiente {
+  background-color: var(--color-warning);
+  color: white;
+}
+
+.tareaEstado--en-proceso {
+  background-color: var(--color-info);
+  color: white;
+}
+
+.tareaEstado--completada {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.tareaUsuarios {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.tareaAcciones {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+}
+
+/* ============================================
+   MENSAJE DE SIN TAREAS
+   ============================================ */
+
+.sinTareas {
+  text-align: center;
+  padding: var(--spacing-3xl);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--color-gray-300);
+  margin-bottom: var(--spacing-xl);
+}
+
+.sinTareas p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+  .seccionMenuUsuario {
+    padding: var(--spacing-md);
+  }
+  
+  .filtrosControles {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filtrosControles .ucFormGroup {
+    min-width: auto;
+  }
+  
+  .resumenContenido {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .tareaAcciones {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .resumenContenido {
+    grid-template-columns: 1fr;
+  }
+  
+  .seleccionUsuario,
+  .filtrosTareas,
+  .resumenTareas,
+  .tareasUsuario {
+    padding: var(--spacing-md);
+  }
+}

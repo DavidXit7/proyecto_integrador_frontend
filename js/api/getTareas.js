@@ -11,6 +11,13 @@ export const getTareasById = async (id) => {
   return datos;
 };
 
+export const getTareasPorUsuario = async (documento) => {
+  const todasLasTareas = await getTareas();
+  return todasLasTareas.filter(tarea => 
+    tarea.usuarios_asignados && tarea.usuarios_asignados.includes(documento)
+  );
+};
+
 export const crearTarea = async (tarea) => {
   // Obtenemos todas las tareas para calcular el siguiente ID numerico
   const todas = await getTareas();
