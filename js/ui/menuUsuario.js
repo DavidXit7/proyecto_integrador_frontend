@@ -35,7 +35,6 @@ const cargarUsuarios = async () => {
         });
     } catch (error) {
         console.error("Error al cargar usuarios:", error);
-        mostrarMensajeError("No se pudieron cargar los usuarios");
     }
 };
 
@@ -72,7 +71,6 @@ const mostrarTareasUsuario = async () => {
         
     } catch (error) {
         console.error("Error al cargar tareas del usuario:", error);
-        mostrarMensajeError("No se pudieron cargar las tareas del usuario");
     }
 };
 
@@ -120,11 +118,9 @@ const limpiarFiltros = async () => {
 const finalizarTarea = async (idTarea, documentoUsuario) => {
     try {
         await finalizarTareaParaUsuario(idTarea, documentoUsuario);
-        mostrarMensajeExito("Tarea finalizada correctamente");
         await mostrarTareasUsuario(); // Recargar tareas
     } catch (error) {
         console.error("Error al finalizar tarea:", error);
-        mostrarMensajeError("No se pudo finalizar la tarea: " + error.message);
     }
 };
 
@@ -132,54 +128,10 @@ const finalizarTarea = async (idTarea, documentoUsuario) => {
 const desvincularTarea = async (idTarea, documentoUsuario) => {
     try {
         await desvincularUsuarioDeTarea(idTarea, documentoUsuario);
-        mostrarMensajeExito("Usuario desvinculado de la tarea correctamente");
         await mostrarTareasUsuario(); // Recargar tareas
     } catch (error) {
         console.error("Error al desvincular tarea:", error);
-        mostrarMensajeError("No se pudo desvincular la tarea: " + error.message);
     }
-};
-
-// Mostrar mensaje de error
-const mostrarMensajeError = (mensaje) => {
-    const errorDiv = document.createElement("div");
-    errorDiv.classList.add("msgError");
-    errorDiv.textContent = mensaje;
-    errorDiv.style.position = "fixed";
-    errorDiv.style.top = "20px";
-    errorDiv.style.right = "20px";
-    errorDiv.style.zIndex = "9999";
-    errorDiv.style.padding = "var(--spacing-md)";
-    errorDiv.style.backgroundColor = "var(--color-error)";
-    errorDiv.style.color = "white";
-    errorDiv.style.borderRadius = "var(--radius-md)";
-    
-    document.body.appendChild(errorDiv);
-    
-    setTimeout(() => {
-        errorDiv.remove();
-    }, 3000);
-};
-
-// Mostrar mensaje de éxito
-const mostrarMensajeExito = (mensaje) => {
-    const successDiv = document.createElement("div");
-    successDiv.classList.add("msgExito");
-    successDiv.textContent = mensaje;
-    successDiv.style.position = "fixed";
-    successDiv.style.top = "20px";
-    successDiv.style.right = "20px";
-    successDiv.style.zIndex = "9999";
-    successDiv.style.padding = "var(--spacing-md)";
-    successDiv.style.backgroundColor = "var(--color-success)";
-    successDiv.style.color = "white";
-    successDiv.style.borderRadius = "var(--radius-md)";
-    
-    document.body.appendChild(successDiv);
-    
-    setTimeout(() => {
-        successDiv.remove();
-    }, 3000);
 };
 
 // Event Listeners
