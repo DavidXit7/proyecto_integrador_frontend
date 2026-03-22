@@ -37,9 +37,42 @@ const limpiarErrores = () => {
 };
 
 const mostrarErrores = (errores) => {
-    if (errores.documento) documento.classList.add("error");
-    if (errores.nombre) nombre.classList.add("error");
-    if (errores.correo) correo.classList.add("error");
+    if (errores.documento) {
+        documento.classList.add("error");
+        const msgExistente = formulario.querySelector(".msgDocumento");
+        if (!msgExistente){
+            const msg = document.createElement("span");
+            msg.classList.add("msgError", "msgDocumento");
+            msg.textContent = errores.documento;
+            documento.parentElement.append(msg);
+        } else {
+            msgExistente.textContent = errores.documento;
+        }
+    }
+    if (errores.nombre) {
+        nombre.classList.add("error");
+        const msgExistente = formulario.querySelector(".msgNombre");
+        if (!msgExistente){
+            const msg = document.createElement("span");
+            msg.classList.add("msgError", "msgNombre");
+            msg.textContent = errores.nombre;
+            nombre.parentElement.append(msg);
+        } else {
+            msgExistente.textContent = errores.nombre;
+        }
+    }
+    if (errores.correo) {
+        correo.classList.add("error");
+        const msgExistente = formulario.querySelector(".msgCorreo");
+        if (!msgExistente){
+            const msg = document.createElement("span");
+            msg.classList.add("msgError", "msgCorreo");
+            msg.textContent = errores.correo;
+            correo.parentElement.append(msg);
+        } else {
+            msgExistente.textContent = errores.correo;
+        }
+    }
 };
 
 const limpiarFormularioUsuario = () => {

@@ -71,14 +71,34 @@ formTarea.addEventListener("submit", async (e) => {
     userSelector.classList.remove("error");
 
     // Validaciones
-    if (tituloValor === "") { tituloTarea.classList.add("error"); return; }
-    if (descValor === "") { descripcionTarea.classList.add("error"); return; }
+    if (tituloValor === "") { 
+        tituloTarea.classList.add("error"); 
+        const msgExistente = formTarea.querySelector(".msgTituloTarea");
+        if (!msgExistente){
+            const msg = document.createElement("span");
+            msg.classList.add("msgError", "msgTituloTarea");
+            msg.textContent = "El título es obligatorio.";
+            tituloTarea.parentElement.append(msg);
+        }
+        return; 
+    }
+    if (descValor === "") { 
+        descripcionTarea.classList.add("error"); 
+        const msgExistente = formTarea.querySelector(".msgDescripcionTarea");
+        if (!msgExistente){
+            const msg = document.createElement("span");
+            msg.classList.add("msgError", "msgDescripcionTarea");
+            msg.textContent = "La descripción es obligatoria.";
+            descripcionTarea.parentElement.append(msg);
+        }
+        return; 
+    }
     if (usuariosAsignados.length === 0) { 
         userSelector.classList.add("error");
         const msgExistente = formTarea.querySelector(".msgUsuariosTarea");
         if (!msgExistente) {
-            const msg = document.createElement("p");
-            msg.classList.add("msgNoEncontrado", "msgUsuariosTarea");
+            const msg = document.createElement("span");
+            msg.classList.add("msgError", "msgUsuariosTarea");
             msg.textContent = "Por favor, asigna al menos un usuario a la tarea.";
             userSelector.parentElement.append(msg);
         }

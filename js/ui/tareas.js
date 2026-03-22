@@ -4,7 +4,7 @@
 
 import { filtrarTareas } from "../services/tareasService.js";
 
-export const armarCardTarea = async (tarea) => {
+export const armarCardTarea = async (tarea, opciones = {}) => {
     const card = document.createElement("div");
     card.classList.add("cardTarea");
     card.setAttribute("data-id", tarea.id);
@@ -63,6 +63,21 @@ export const armarCardTarea = async (tarea) => {
     strongUsuarios.textContent = "Usuarios:";
     pUsuarios.append(strongUsuarios, " ", usuariosTexto);
 
+    // Mostrar información de compartición si aplica
+    let infoComparticion = "";
+    if (tarea.usuarios_asignados && tarea.usuarios_asignados.length > 1) {
+        infoComparticion = `(${tarea.usuarios_asignados.length} usuarios asignados)`;
+    } else if (tarea.usuarios_asignados && tarea.usuarios_asignados.length === 1) {
+        infoComparticion = "(tarea individual)";
+    }
+
+    if (infoComparticion) {
+        const pInfoComparticion = document.createElement("p");
+        pInfoComparticion.classList.add("tareaComparticion");
+        pInfoComparticion.textContent = infoComparticion;
+        tareaInfo.append(pInfoComparticion);
+    }
+
     tareaInfo.append(
         pUsuarios,
         crearParrafo("Titulo", tarea.titulo, "tareaTitulo"),
@@ -73,23 +88,45 @@ export const armarCardTarea = async (tarea) => {
     const tareaAcciones = document.createElement("div");
     tareaAcciones.classList.add("tareaAcciones");
 
-    const btnEditar = document.createElement("button");
-    btnEditar.classList.add("btn", "btnEditarTarea");
-    btnEditar.setAttribute("data-id", tarea.id);
-    btnEditar.textContent = "Editar";
+    // Botones según el contexto
+    if (opciones.esVistaUsuario && opciones.usuarioActual) {
+        // Vista de usuario: mostrar botones de finalización y desvinculación
+        if (tarea.estado !== "completada") {
+            const btnFinalizar = document.createElement("button");
+            btnFinalizar.classList.add("btn", "btnSuccess", "btnFinalizarTarea");
+            btnFinalizar.setAttribute("data-id", tarea.id);
+            btnFinalizar.setAttribute("data-usuario", opciones.usuarioActual);
+            btnFinalizar.textContent = "Finalizar";
+            tareaAcciones.append(btnFinalizar);
+        }
 
-    const btnEliminar = document.createElement("button");
-    btnEliminar.classList.add("btn", "btnEliminarTarea");
-    btnEliminar.setAttribute("data-id", tarea.id);
-    btnEliminar.textContent = "Eliminar";
+        const btnDesvincular = document.createElement("button");
+        btnDesvincular.classList.add("btn", "btnWarning", "btnDesvincularTarea");
+        btnDesvincular.setAttribute("data-id", tarea.id);
+        btnDesvincular.setAttribute("data-usuario", opciones.usuarioActual);
+        btnDesvincular.textContent = tarea.usuarios_asignados && tarea.usuarios_asignados.length > 1 ? "Desvincular" : "Eliminar";
+        tareaAcciones.append(btnDesvincular);
+    } else {
+        // Vista administrativa: mostrar botones de edición y eliminación
+        const btnEditar = document.createElement("button");
+        btnEditar.classList.add("btn", "btnEditarTarea");
+        btnEditar.setAttribute("data-id", tarea.id);
+        btnEditar.textContent = "Editar";
 
-    tareaAcciones.append(btnEditar, btnEliminar);
+        const btnEliminar = document.createElement("button");
+        btnEliminar.classList.add("btn", "btnEliminarTarea");
+        btnEliminar.setAttribute("data-id", tarea.id);
+        btnEliminar.textContent = "Eliminar";
+
+        tareaAcciones.append(btnEditar, btnEliminar);
+    }
+
     card.append(tareaInfo, tareaAcciones);
 
     return card;
 };
 
-export const armarListaTareas = async (contenedor, tareas) => {
+export const armarListaTareas = async (contenedor, tareas, opciones = {}) => {
     contenedor.replaceChildren();
 
     if (tareas.length === 0) {
@@ -102,7 +139,7 @@ export const armarListaTareas = async (contenedor, tareas) => {
 
     const fragmento = document.createDocumentFragment();
     for (const tarea of tareas) {
-        const card = await armarCardTarea(tarea);
+        const card = await armarCardTarea(tarea, opciones);
         fragmento.append(card);
     }
     contenedor.append(fragmento);
@@ -123,7 +160,6 @@ export const obtenerTodasLasTareas = () => todasLasTareas;
 
 const aplicarFiltros = async (contenedor) => {
     const criterios = {
-        documento: document.getElementById("filtroDocumento").value.trim().toLowerCase(),
         estado: document.getElementById("filtroEstado").value,
         usuario: document.getElementById("filtroUsuario").value.trim().toLowerCase()
     };
@@ -133,7 +169,6 @@ const aplicarFiltros = async (contenedor) => {
 };
 
 const limpiarFiltros = async (contenedor) => {
-    document.getElementById("filtroDocumento").value = "";
     document.getElementById("filtroEstado").value = "";
     document.getElementById("filtroUsuario").value = "";
     await armarListaTareas(contenedor, todasLasTareas);
@@ -142,13 +177,11 @@ const limpiarFiltros = async (contenedor) => {
 export const inicializarFiltros = (contenedor) => {
     const btnAplicar = document.getElementById("btnAplicarFiltros");
     const btnLimpiar = document.getElementById("btnLimpiarFiltros");
-    const inputDocumento = document.getElementById("filtroDocumento");
     const selectEstado = document.getElementById("filtroEstado");
     const inputUsuario = document.getElementById("filtroUsuario");
 
     btnAplicar.addEventListener("click", () => aplicarFiltros(contenedor));
     btnLimpiar.addEventListener("click", () => limpiarFiltros(contenedor));
-    inputDocumento.addEventListener("input", () => aplicarFiltros(contenedor));
     selectEstado.addEventListener("change", () => aplicarFiltros(contenedor));
     inputUsuario.addEventListener("input", () => aplicarFiltros(contenedor));
 };
