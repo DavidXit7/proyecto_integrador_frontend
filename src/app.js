@@ -2,245 +2,226 @@
 import { armarCiudades, armarGenero, armarListaUsuarios } from "../js/ui/index.js";
 import { validar } from "../js/utils/validarFormulario.js";
 import { ciudades, generos, getUsuarios, getUsuarioPorDocumento, crearUsuario, actualizarUsuario, eliminarUsuario } from "../js/api/index.js";
+import Swal from 'sweetalert2';
 
-// variables globales (solo para usuarios)
 let datosCiudades = [];
 let datosGeneros = [];
 let usuarioEditandoId = null;
 
-// referencias DOM (solo para usuarios)
-const formulario = document.querySelector("#formUsuario");
-const documento = document.querySelector("#documento");
-const nombre = document.querySelector("#nombre");
-const correo = document.querySelector("#correo");
-const divGeneros = document.getElementById("generos");
-const ciudadId = document.querySelector("#ciudadId");
-const btnEnviar = document.querySelector("#btnEnviar");
-const listaUsuarios = document.querySelector("#listaUsuarios");
-const btnBuscar = document.querySelector("#btnBuscar");
-const buscarDocumento = document.querySelector("#buscarDocumento");
-const resultadoBusqueda = document.querySelector("#resultadoBusqueda");
-
 const reglas = {
-    documento: { required: true, min: 8, max: 10, mensaje: "El campo es obligatorio" },
-    nombre: { required: true, mensaje: "El campo es obligatorio" },
-    genero: { required: true, mensaje: "Por favor, seleccione su genero" },
-    ciudad: { required: true },
-    correo: { required: true, mensaje: "El campo es obligatorio" }
-};
-
-// funciones auxiliares
-const limpiarErrores = () => {
-    documento.classList.remove("error");
-    nombre.classList.remove("error");
-    correo.classList.remove("error");
-};
-
-const mostrarErrores = (errores) => {
-    if (errores.documento) {
-        documento.classList.add("error");
-        const msgExistente = formulario.querySelector(".msgDocumento");
-        if (!msgExistente){
-            const msg = document.createElement("span");
-            msg.classList.add("msgError", "msgDocumento");
-            msg.textContent = errores.documento;
-            documento.parentElement.append(msg);
-        } else {
-            msgExistente.textContent = errores.documento;
-        }
-    }
-    if (errores.nombre) {
-        nombre.classList.add("error");
-        const msgExistente = formulario.querySelector(".msgNombre");
-        if (!msgExistente){
-            const msg = document.createElement("span");
-            msg.classList.add("msgError", "msgNombre");
-            msg.textContent = errores.nombre;
-            nombre.parentElement.append(msg);
-        } else {
-            msgExistente.textContent = errores.nombre;
-        }
-    }
-    if (errores.correo) {
-        correo.classList.add("error");
-        const msgExistente = formulario.querySelector(".msgCorreo");
-        if (!msgExistente){
-            const msg = document.createElement("span");
-            msg.classList.add("msgError", "msgCorreo");
-            msg.textContent = errores.correo;
-            correo.parentElement.append(msg);
-        } else {
-            msgExistente.textContent = errores.correo;
-        }
+    documento: { 
+        required: true, 
+        pattern: /^[0-9]{7,10}$/, 
+        mensajePattern: "Solo números (entre 7 y 10 dígitos)" 
+    },
+    nombre: { 
+        required: true, 
+        min: 3, 
+        max: 30,
+        pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
+        mensajeMin: "Mínimo 3 caracteres",
+        mensajeMax: "Máximo 30 caracteres",
+        mensajePattern: "Solo se permiten letras y espacios"
+    },
+    genero: { 
+        required: true, 
+        mensaje: "Por favor, seleccione su género" 
+    },
+    ciudad: { 
+        required: true 
+    },
+    correo: { 
+        required: true, 
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, 
+        mensajePattern: "Formato de correo no válido (ej: usuario@dominio.com)" 
     }
 };
 
-const limpiarFormularioUsuario = () => {
-    formulario.reset();
-    usuarioEditandoId = null;
-    btnEnviar.textContent = "Enviar";
-    limpiarErrores();
-};
+/**
+ * FUNCIÓN DE INICIALIZACIÓN PARA LA VISTA DE USUARIOS
+ */
+export const initUsuarios = async () => {
+    // Referencias DOM (se obtienen cada vez que se carga la vista)
+    const formulario = document.querySelector("#formUsuario");
+    const documentoInput = document.querySelector("#documento");
+    const nombreInput = document.querySelector("#nombre");
+    const correoInput = document.querySelector("#correo");
+    const divGeneros = document.getElementById("generos");
+    const ciudadIdSelect = document.querySelector("#ciudadId");
+    const btnEnviar = document.querySelector("#btnEnviar");
+    const listaUsuarios = document.querySelector("#listaUsuarios");
+    const btnBuscar = document.querySelector("#btnBuscar");
+    const buscarDocumentoInput = document.querySelector("#buscarDocumento");
+    const resultadoBusqueda = document.querySelector("#resultadoBusqueda");
 
-const cargarUsuariosEnLista = async () => {
-    const usuarios = await getUsuarios();
-    armarListaUsuarios(listaUsuarios, usuarios, datosCiudades, datosGeneros);
-};
+    // Si por alguna razón no está el formulario, salimos
+    if (!formulario) return;
 
-const cargarFormularioConUsuario = (usuario) => {
-    documento.value = usuario.documento;
-    nombre.value = usuario.nombre;
-    correo.value = usuario.correo;
-    ciudadId.value = usuario.ciudad_id;
+    // Funciones locales que dependen del DOM actual
+    const limpiarErrores = () => {
+        documentoInput.classList.remove("error");
+        nombreInput.classList.remove("error");
+        correoInput.classList.remove("error");
+        formulario.querySelectorAll(".msgError").forEach(msg => msg.remove());
+    };
 
-    const radios = document.querySelectorAll("input[name='genero']");
-    radios.forEach((radio) => {
-        if (Number(radio.value) === usuario.genero_id) {
-            radio.checked = true;
+    const mostrarErrores = (errores) => {
+        for (const campo in errores) {
+            const elemento = formulario.querySelector(`[name="${campo}"]`) || document.getElementById(campo);
+            if (elemento) {
+                elemento.classList.add("error");
+                const msg = document.createElement("span");
+                msg.classList.add("msgError", `msg${campo.charAt(0).toUpperCase() + campo.slice(1)}`);
+                msg.textContent = errores[campo];
+                elemento.parentElement.append(msg);
+            }
+        }
+    };
+
+    const limpiarFormularioUsuario = () => {
+        formulario.reset();
+        usuarioEditandoId = null;
+        btnEnviar.textContent = "Enviar";
+        limpiarErrores();
+    };
+
+    const cargarUsuariosEnLista = async () => {
+        const usuarios = await getUsuarios();
+        armarListaUsuarios(listaUsuarios, usuarios, datosCiudades, datosGeneros);
+    };
+
+    const cargarFormularioConUsuario = (usuario) => {
+        documentoInput.value = usuario.documento;
+        nombreInput.value = usuario.nombre;
+        correoInput.value = usuario.correo;
+        ciudadIdSelect.value = usuario.ciudad_id;
+
+        const radios = document.querySelectorAll("input[name='genero']");
+        radios.forEach((radio) => {
+            if (Number(radio.value) === usuario.genero_id) {
+                radio.checked = true;
+            }
+        });
+
+        usuarioEditandoId = usuario.id;
+        btnEnviar.textContent = "Actualizar";
+    };
+
+    // --- CARGA INICIAL DE DATOS ---
+    try {
+        datosCiudades = await ciudades();
+        datosGeneros = await generos();
+        
+        armarGenero(divGeneros, datosGeneros);
+        armarCiudades(ciudadIdSelect, datosCiudades);
+        await cargarUsuariosEnLista();
+    } catch (error) {
+        console.error("Error al inicializar usuarios:", error);
+    }
+
+    // --- MANEJO DE EVENTOS ---
+    formulario.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        limpiarErrores();
+        
+        const respuesta = validar(e.target, reglas);
+        if (!respuesta.valido) {
+            mostrarErrores(respuesta.errores);
+            return;
+        }
+
+        const generoSeleccionado = document.querySelector("input[name='genero']:checked");
+        if (!generoSeleccionado) {
+            Swal.fire({ icon: 'warning', title: 'Género requerido', text: 'Selecciona un género.' });
+            return;
+        }
+
+        const datosUsuario = {
+            documento: documentoInput.value.trim(),
+            nombre: nombreInput.value.trim(),
+            genero_id: Number(generoSeleccionado.value),
+            ciudad_id: Number(ciudadIdSelect.value),
+            correo: correoInput.value.trim()
+        };
+
+        try {
+            if (usuarioEditandoId !== null) {
+                await actualizarUsuario(usuarioEditandoId, datosUsuario);
+                await cargarUsuariosEnLista(); // Actualización simple para SPA
+            } else {
+                await crearUsuario(datosUsuario);
+                await cargarUsuariosEnLista();
+            }
+            
+            Swal.fire({ icon: 'success', title: 'Guardado', text: 'Operación exitosa', timer: 1500, showConfirmButton: false });
+            limpiarFormularioUsuario();
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
         }
     });
 
-    usuarioEditandoId = usuario.id;
-    btnEnviar.textContent = "Actualizar";
-};
-
-// Evento DOMContentLoaded
-document.addEventListener("DOMContentLoaded", async () => {
-    datosCiudades = await ciudades();
-    datosGeneros = await generos();
-    armarGenero(divGeneros, datosGeneros);
-    armarCiudades(ciudadId, datosCiudades);
-    await cargarUsuariosEnLista();
-});
-
-// Submit formulario usuario (crear o actualizar)
-formulario.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    limpiarErrores();
-    const respuesta = validar(e.target, reglas);
-
-    if (!respuesta.valido) {
-        mostrarErrores(respuesta.errores);
-        return;
-    }
-
-    const generoSeleccionado = document.querySelector("input[name='genero']:checked");
-    if (!generoSeleccionado) {
-        alert("Por favor seleccione un genero");
-        return;
-    }
-
-    const datosUsuario = {
-        documento: documento.value.trim(),
-        nombre: nombre.value.trim(),
-        genero_id: Number(generoSeleccionado.value),
-        ciudad_id: Number(ciudadId.value),
-        correo: correo.value.trim()
-    };
-
-    try {
-        if (usuarioEditandoId !== null) {
-            await actualizarUsuario(usuarioEditandoId, datosUsuario);
-
-            const selectorCard = "[data-id='" + usuarioEditandoId + "']";
-            const cardExistente = listaUsuarios.querySelector(selectorCard);
-            if (cardExistente) {
-                const ciudad = datosCiudades.find(c => c.id == datosUsuario.ciudad_id);
-                const genero = datosGeneros.find(g => g.id == datosUsuario.genero_id);
-
-                const cardInfo = cardExistente.querySelector(".cardInfo");
-                cardInfo.replaceChildren();
-
-                const crearParrafo = (label, valor) => {
-                    const p = document.createElement("p");
-                    const strong = document.createElement("strong");
-                    strong.textContent = label + ":";
-                    p.append(strong, " " + (valor || ""));
-                    return p;
-                };
-
-                cardInfo.append(
-                    crearParrafo("Documento", datosUsuario.documento),
-                    crearParrafo("Nombre", datosUsuario.nombre),
-                    crearParrafo("Genero", genero ? genero.genero : ""),
-                    crearParrafo("Ciudad", ciudad ? ciudad.ciudad : ""),
-                    crearParrafo("Correo", datosUsuario.correo)
-                );
+    listaUsuarios.addEventListener("click", async (e) => {
+        const btnEditar = e.target.closest(".btnEditarUsuario");
+        if (btnEditar) {
+            const id = btnEditar.getAttribute("data-id");
+            const usuarios = await getUsuarios();
+            const usuario = usuarios.find(u => String(u.id) === String(id));
+            if (usuario) {
+                cargarFormularioConUsuario(usuario);
+                formulario.scrollIntoView({ behavior: "smooth" });
             }
+        }
+
+        const btnEliminar = e.target.closest(".btnEliminarUsuario");
+        if (btnEliminar) {
+            const idEliminar = btnEliminar.getAttribute("data-id");
+            const result = await Swal.fire({
+                title: '¿Eliminar usuario?',
+                text: "No se puede deshacer",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, borrar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    await eliminarUsuario(idEliminar);
+                    await cargarUsuariosEnLista();
+                    Swal.fire('Eliminado', 'Usuario borrado', 'success');
+                } catch (error) {
+                    Swal.fire('Error', error.message, 'error');
+                }
+            }
+        }
+    });
+
+    btnBuscar.addEventListener("click", async () => {
+        const docValor = buscarDocumentoInput.value.trim();
+        resultadoBusqueda.replaceChildren();
+
+        if (docValor === "") {
+            const p = document.createElement("p");
+            p.classList.add("msgError");
+            p.textContent = "Ingrese un documento";
+            resultadoBusqueda.append(p);
+            return;
+        }
+
+        const resultados = await getUsuarioPorDocumento(docValor);
+        if (resultados.length > 0) {
+            const u = resultados[0];
+            const p = document.createElement("p");
+            p.classList.add("msgEncontrado");
+            p.textContent = `Encontrado: `;
+            const strong = document.createElement("strong");
+            strong.textContent = u.nombre;
+            p.append(strong, ` (${u.documento})`);
+            resultadoBusqueda.append(p);
         } else {
-            const nuevoUsuario = await crearUsuario(datosUsuario);
-            const { armarCardUsuario } = await import("../js/ui/usuarios.js");
-            const card = armarCardUsuario(nuevoUsuario, datosCiudades, datosGeneros);
-            listaUsuarios.append(card);
+            const p = document.createElement("p");
+            p.classList.add("msgNoEncontrado");
+            p.textContent = "No se encontró el usuario";
+            resultadoBusqueda.append(p);
         }
-
-        limpiarFormularioUsuario();
-    } catch (error) {
-        console.error("Error al guardar usuario:", error);
-        alert("Hubo un error al guardar el usuario: " + error.message);
-    }
-});
-
-// Delegacion de eventos en lista de usuarios
-listaUsuarios.addEventListener("click", async (e) => {
-    const btnEditar = e.target.closest(".btnEditarUsuario");
-    if (btnEditar) {
-        const id = btnEditar.getAttribute("data-id");
-        const usuarios = await getUsuarios();
-        const usuario = usuarios.find(u => String(u.id) === String(id));
-
-        if (usuario) {
-            cargarFormularioConUsuario(usuario);
-            formulario.scrollIntoView({ behavior: "smooth" });
-        }
-    }
-
-    const btnEliminar = e.target.closest(".btnEliminarUsuario");
-    if (btnEliminar) {
-        const idEliminar = btnEliminar.getAttribute("data-id");
-
-        if (confirm("¿Está seguro de eliminar este usuario?")) {
-            try {
-                await eliminarUsuario(idEliminar);
-                const selectorEliminar = "[data-id='" + idEliminar + "']";
-                const card = listaUsuarios.querySelector(selectorEliminar);
-                if (card) card.remove();
-            } catch (error) {
-                console.error("Error al eliminar usuario:", error);
-                alert("No se pudo eliminar el usuario: " + error.message);
-            }
-        }
-    }
-});
-
-// Buscar usuario
-btnBuscar.addEventListener("click", async () => {
-    const docValor = buscarDocumento.value.trim();
-    resultadoBusqueda.replaceChildren();
-
-    if (docValor === "") {
-        const p = document.createElement("p");
-        p.classList.add("msgError");
-        p.textContent = "Por favor ingrese un documento";
-        resultadoBusqueda.append(p);
-        return;
-    }
-
-    const resultados = await getUsuarioPorDocumento(docValor);
-
-    if (resultados.length > 0) {
-        const u = resultados[0];
-        const p = document.createElement("p");
-        p.classList.add("msgEncontrado");
-        const strong = document.createElement("strong");
-        strong.textContent = u.nombre;
-        p.append("Usuario encontrado: ", strong, " - Documento: " + u.documento + " - Correo: " + u.correo);
-        resultadoBusqueda.append(p);
-    } else {
-        const p = document.createElement("p");
-        p.classList.add("msgNoEncontrado");
-        p.textContent = "No se encontro ningun usuario con ese documento";
-        resultadoBusqueda.append(p);
-    }
-});
+    });
+};
