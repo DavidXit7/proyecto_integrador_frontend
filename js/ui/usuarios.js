@@ -58,7 +58,10 @@ export const armarSelectorUsuarios = (contenedor, usuarios) => {
     contenedor.replaceChildren(); // Limpia el contenedor (p.ej. el mensaje de "Cargando...")
     
     if (usuarios.length === 0) {
-        contenedor.innerHTML = '<p class="formLabel">No hay usuarios registrados</p>';
+        const p = document.createElement('p');
+        p.classList.add('formLabel');
+        p.textContent = 'No hay usuarios registrados';
+        contenedor.append(p);
         return;
     }
 
@@ -87,4 +90,3 @@ export const armarSelectorUsuarios = (contenedor, usuarios) => {
 
     contenedor.append(fragmento);
 };
-

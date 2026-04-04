@@ -1,40 +1,67 @@
-// ============================================
-// MÓDULO DE NOTIFICACIONES - RF03
-// Independiente, reutilizable, sin depender de API
-// ============================================
+import Swal from 'sweetalert2';
 
-let contenedorNotificaciones = null;
+// Configuración global para notificaciones tipo Toast (pequeñas, arriba a la derecha)
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+});
 
-const inicializarContenedor = () => {
-    if (contenedorNotificaciones) return;
-
-    contenedorNotificaciones = document.createElement("div");
-    contenedorNotificaciones.classList.add("notificacionesContenedor");
-    document.body.append(contenedorNotificaciones);
+/**
+ * Notifica un mensaje de éxito usando SweetAlert2 (Toast)
+ * @param {string} mensaje 
+ */
+export const notificarExito = (mensaje) => {
+    Toast.fire({
+        icon: 'success',
+        title: mensaje
+    });
 };
 
-const crearNotificacion = (mensaje, tipo) => {
-    inicializarContenedor();
-
-    const notificacion = document.createElement("div");
-    notificacion.classList.add("notificacion", "notificacion--" + tipo);
-
-    const texto = document.createElement("span");
-    texto.textContent = mensaje;
-
-    const btnCerrar = document.createElement("button");
-    btnCerrar.classList.add("notificacion__cerrar");
-    btnCerrar.textContent = "x";
-    btnCerrar.addEventListener("click", () => notificacion.remove());
-
-    notificacion.append(texto, btnCerrar);
-    contenedorNotificaciones.append(notificacion);
-
-    setTimeout(() => {
-        if (notificacion.parentElement) notificacion.remove();
-    }, 4000);
+/**
+ * Notifica un mensaje de error usando SweetAlert2 (Toast)
+ * @param {string} mensaje 
+ */
+export const notificarError = (mensaje) => {
+    Toast.fire({
+        icon: 'error',
+        title: mensaje
+    });
 };
 
-export const notificarExito = (mensaje) => crearNotificacion(mensaje, "exito");
-export const notificarError = (mensaje) => crearNotificacion(mensaje, "error");
-export const notificarInfo = (mensaje) => crearNotificacion(mensaje, "info");
+/**
+ * Notifica un mensaje de información usando SweetAlert2 (Toast)
+ * @param {string} mensaje 
+ */
+export const notificarInfo = (mensaje) => {
+    Toast.fire({
+        icon: 'info',
+        title: mensaje
+    });
+};
+
+/**
+ * Muestra un modal de confirmación interactivo
+ * @param {string} titulo 
+ * @param {string} texto 
+ * @returns {Promise<boolean>} Resolves to true if confirmed
+ */
+export const confirmarAccion = async (titulo, texto) => {
+    const result = await Swal.fire({
+        title: titulo || '¿Estás seguro?',
+        text: texto || "Esta acción no se puede deshacer",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, continuar',
+        cancelButtonText: 'Cancelar'
+    });
+    return result.isConfirmed;
+};
