@@ -1,0 +1,72 @@
+<!-- VISTA 2: Tareas -->
+<div id="vistaTareas" class="vista">
+
+    <div class="vistaHeader">
+        <h1>Tareas</h1>
+        <div class="nav-spa">
+            <a href="#/usuarios" class="btn btnPrimary">Ir a Usuarios</a>
+            <a href="#/menu" class="btn btnPrimary">Ir a Menu Usuario</a>
+        </div>
+    </div>
+
+    <!-- FORMULARIO CREAR / EDITAR TAREA -->
+    <div class="seccionTareas">
+        <form id="formTarea" class="formSection">
+            <h2 class="formTitle">Registro de Tareas</h2>
+            <div class="formGroup">
+                <label for="tituloTarea" class="formLabel">Titulo de la tarea</label>
+                <input type="text" name="tituloTarea" id="tituloTarea" class="formInput" placeholder="Ingrese el titulo">
+            </div>
+            <div class="formGroup">
+                <label for="descripcionTarea" class="formLabel">Descripcion</label>
+                <input type="text" name="descripcionTarea" id="descripcionTarea" class="formInput formTextarea" placeholder="Ingrese la descripcion">
+            </div>
+            <div class="formGroup">
+                <p class="formLabel">Asignar usuarios</p>
+                <div class="userSelector" id="userSelector">
+                </div>
+            </div>
+            <div class="formGroup">
+                <button class="btn btnPrimary" id="btnCrearTarea" type="submit">Crear Tarea</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- FILTROS AVANZADOS - RF01 -->
+    <div class="seccionFiltros">
+        <div class="filtrosFila">
+            <h2 class="formTitle">Filtros y Ordenamiento</h2>
+            <div class="formGroup">
+                <label for="filtroUsuario" class="formLabel">Filtrar por Usuario</label>
+                <input type="text" id="filtroUsuario" class="formInput" placeholder="Documento del usuario">
+            </div>
+
+            <div class="formGroup">
+                <label for="filtroEstado" class="formLabel">Filtrar por Estado</label>
+                <select id="filtroEstado" class="formInput">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="completada">Completada</option>
+                </select>
+            </div>
+            <div class="formGroup">
+                <label for="selectOrden" class="formLabel">Ordenar por</label>
+                <select id="selectOrden" class="formInput">
+                    <option value="">Sin ordenar</option>
+                    <option value="nombre">Nombre</option>
+                    <option value="estado">Estado</option>
+                    <option value="fecha">Fecha de creacion</option>
+                </select>
+            </div>
+            <div class="filtrosAcciones">
+                <button class="btn btnPrimary" id="btnAplicarFiltros">Aplicar Filtros</button>
+                <button class="btn btnSecondary" id="btnLimpiarFiltros">Limpiar Filtros</button>
+                <button class="btn btnSecondary" id="btnExportar">Exportar JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LISTA DE TAREAS -->
+    <div id="listaTareas" class="listaTareas"></div>
+
+</div>

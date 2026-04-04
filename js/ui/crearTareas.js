@@ -1,254 +1,190 @@
 // ============================================
-// SCRIPT PARA FORMULARIO DE TAREAS
+// SCRIPT MODULAR PARA TAREAS (SPA)
 // ============================================
 
-import { armarListaTareas, armarCardTarea, guardarTareasParaFiltro, inicializarFiltros, obtenerTodasLasTareas } from "./tareas.js";
-import { notificarExito, notificarError, notificarInfo } from "./notificaciones.js";
+import { armarListaTareas, armarCardTarea, guardarTareasParaFiltro, inicializarFiltros, obtenerTareasFiltradas } from "./tareas.js";
+import { notificarExito, notificarError, notificarInfo, confirmarAccion } from "./notificaciones.js";
 import { exportarTareasJSON } from "./exportar.js";
-import { getTareas, crearTarea, actualizarTarea, eliminarTarea, getUsuarioPorDocumento } from "../api/index.js";
+import { getTareas, crearTarea, actualizarTarea, eliminarTarea, getUsuarios, getTareasById } from "../api/index.js";
 import { procesarTareasParaExportar, inicializarOrdenamiento } from "../services/index.js";
+import { armarSelectorUsuarios } from "./index.js";
+import { validar } from "../utils/validarFormulario.js";
 
-// Variables globales
 let tareaEditandoId = null;
 
-// Referencias DOM
-const formTarea = document.querySelector("#formTarea");
-const docTarea = document.querySelector("#docTarea");
-const tituloTarea = document.querySelector("#tituloTarea");
-const descripcionTarea = document.querySelector("#descripcionTarea");
-const selectEstadoTarea = document.querySelector("#estadoTarea");
-const btnCrearTarea = document.querySelector("#btnCrearTarea");
-const listaTareas = document.querySelector("#listaTareas");
-const btnExportar = document.querySelector("#btnExportar");
-
-// ============================================
-// FUNCIONES AUXILIARES
-// ============================================
-
-const limpiarFormularioTarea = () => {
-    formTarea.reset();
-    docTarea.disabled = false;
-    tareaEditandoId = null;
-    btnCrearTarea.textContent = "Crear Tarea";
-};
-
-const actualizarTareasEnSistema = async () => {
-    const tareas = await getTareas();
-    guardarTareasParaFiltro(tareas);
-};
-
-const cargarTareasEnLista = async () => {
-    try {
-        const tareas = await getTareas();
-        guardarTareasParaFiltro(tareas);
-        armarListaTareas(listaTareas, tareas);
-        inicializarFiltros(listaTareas);
-        inicializarOrdenamiento(listaTareas, obtenerTodasLasTareas, armarListaTareas);
-    } catch (error) {
-        console.error("Error al cargar tareas:", error);
-        notificarError("Error al cargar las tareas");
+const reglas = {
+    tituloTarea: { 
+        required: true, 
+        min: 5, 
+        max: 50,
+        mensajeMin: "El título debe tener al menos 5 caracteres",
+        mensajeMax: "El título es demasiado largo (máx. 50 caracteres)"
+    },
+    descripcionTarea: { 
+        required: true, 
+        min: 10, 
+        max: 200,
+        mensajeMin: "Añade una descripción más detallada (mín. 10 caracteres)",
+        mensajeMax: "La descripción es demasiado larga (máx. 200 caracteres)"
+    },
+    usuariosAsignados: { 
+        required: true, 
+        mensaje: "Por favor, asigna al menos un usuario a la tarea" 
     }
 };
 
-// ============================================
-// SUBMIT FORMULARIO - CREAR O EDITAR TAREA
-// ============================================
+/**
+ * FUNCIÓN DE INICIALIZACIÓN PARA LA VISTA DE TAREAS
+ */
+export const initTareas = async () => {
+    // Referencias DOM
+    const formTarea = document.getElementById("formTarea");
+    const tituloTarea = document.getElementById("tituloTarea");
+    const descripcionTarea = document.getElementById("descripcionTarea");
+    const userSelector = document.getElementById("userSelector");
+    const btnCrearTarea = document.getElementById("btnCrearTarea");
+    const listaTareas = document.getElementById("listaTareas");
+    
+    const btnExportar = document.getElementById("btnExportar");
+    const btnAplicarFiltros = document.getElementById("btnAplicarFiltros");
+    const btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
 
-formTarea.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    if (!formTarea) return;
 
-    const docValor = docTarea.value.trim();
-    const tituloValor = tituloTarea.value.trim();
-    const descValor = descripcionTarea.value.trim();
-    const estadoValor = selectEstadoTarea ? selectEstadoTarea.value : "pendiente";
+    // Funciones auxiliares
+    const limpiarErroresTarea = () => {
+        tituloTarea.classList.remove("error");
+        descripcionTarea.classList.remove("error");
+        userSelector.classList.remove("error");
+        formTarea.querySelectorAll(".msgError").forEach(msg => msg.remove());
+    };
 
-    // Limpiar errores visuales
-    docTarea.classList.remove("error");
-    tituloTarea.classList.remove("error");
-    descripcionTarea.classList.remove("error");
-
-    // Validaciones
-    if (docValor === "") { docTarea.classList.add("error"); return; }
-    if (tituloValor === "") { tituloTarea.classList.add("error"); return; }
-    if (descValor === "") { descripcionTarea.classList.add("error"); return; }
-
-    // Verificar que el usuario exista
-    const resultados = await getUsuarioPorDocumento(docValor);
-    if (resultados.length === 0) {
-        docTarea.classList.add("error");
-        const msgExistente = formTarea.querySelector(".msgDocTarea");
-        if (!msgExistente) {
-            const msg = document.createElement("p");
-            msg.classList.add("msgNoEncontrado", "msgDocTarea");
-            msg.textContent = "No existe un usuario con ese documento";
-            docTarea.parentElement.append(msg);
-        }
-        notificarError("No existe un usuario con ese documento");
-        return;
-    }
-
-    const msgAnterior = formTarea.querySelector(".msgDocTarea");
-    if (msgAnterior) msgAnterior.remove();
-
-    try {
-        if (tareaEditandoId !== null) {
-            // ---- EDITAR ----
-            const tareaActualizada = {
-                titulo: tituloValor,
-                descripcion: descValor,
-                documento_usuario: docValor,
-                estado: estadoValor
-            };
-
-            await actualizarTarea(tareaEditandoId, tareaActualizada);
-
-            const selector = "[data-id='" + tareaEditandoId + "']";
-            const cardTarea = listaTareas.querySelector(selector);
-            if (cardTarea) {
-                const pDoc = cardTarea.querySelector(".tareaInfo p:first-child");
-                pDoc.replaceChildren();
-                const strong = document.createElement("strong");
-                strong.textContent = "Documento:";
-                pDoc.append(strong, " " + docValor);
-                cardTarea.querySelector(".tareaTitulo").textContent = tituloValor;
-                cardTarea.querySelector(".tareaDescripcion").textContent = descValor;
-                const spanEstado = cardTarea.querySelector(".tareaEstado");
-                if (spanEstado) {
-                    spanEstado.className = "tareaEstado tareaEstado--" + estadoValor.replace(" ", "-");
-                    spanEstado.textContent = estadoValor;
+    const mostrarErroresTarea = (errores) => {
+        for (const campo in errores) {
+            const elemento = formTarea.querySelector(`[name="${campo}"]`) || document.getElementById(campo) || userSelector;
+            if (elemento) {
+                elemento.classList.add("error");
+                const msg = document.createElement("span");
+                msg.classList.add("msgError");
+                msg.textContent = errores[campo];
+                
+                if (campo === "usuariosAsignados") {
+                    userSelector.parentElement.append(msg);
+                } else {
+                    elemento.parentElement.append(msg);
                 }
             }
+        }
+    };
 
-            await actualizarTareasEnSistema();
-            tareaEditandoId = null;
-            btnCrearTarea.textContent = "Crear Tarea";
-            notificarExito("Tarea actualizada correctamente");
+    const limpiarFormularioTarea = () => {
+        formTarea.reset();
+        tareaEditandoId = null;
+        btnCrearTarea.textContent = "Crear Tarea";
+        limpiarErroresTarea();
+    };
 
-        } else {
-            // ---- CREAR ----
-            const nuevaTarea = {
-                documento_usuario: docValor,
-                titulo: tituloValor,
-                descripcion: descValor,
-                estado: estadoValor
-            };
+    const cargarTareasEnLista = async () => {
+        try {
+            const tareas = await getTareas();
+            guardarTareasParaFiltro(tareas);
+            await armarListaTareas(listaTareas, tareas);
+            inicializarFiltros(listaTareas);
+            await inicializarOrdenamiento(listaTareas, obtenerTareasFiltradas, armarListaTareas);
+        } catch (error) {
+            notificarError("Error al cargar tareas");
+        }
+    };
 
-            const tareaCreada = await crearTarea(nuevaTarea);
+    // --- CARGA INICIAL ---
+    try {
+        await cargarTareasEnLista();
+        const usuarios = await getUsuarios();
+        armarSelectorUsuarios(userSelector, usuarios);
+    } catch (error) {
+        console.error(error);
+    }
 
-            const msgVacio = listaTareas.querySelector(".msgNoTareas");
-            if (msgVacio) msgVacio.remove();
+    // --- EVENTOS ---
+    formTarea.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        limpiarErroresTarea();
 
-            const cardNueva = armarCardTarea(tareaCreada);
-            listaTareas.append(cardNueva);
-
-            await actualizarTareasEnSistema();
-            notificarExito("Tarea creada correctamente");
+        const respuesta = validar(e.target, reglas);
+        if (!respuesta.valido) {
+            mostrarErroresTarea(respuesta.errores);
+            return;
         }
 
-        limpiarFormularioTarea();
-
-    } catch (error) {
-        console.error("Error al guardar tarea:", error);
-        console.error("Detalles del error:", {
-            message: error.message,
-            stack: error.stack,
-            tipoOperacion: tareaEditandoId !== null ? "EDITAR" : "CREAR",
-            datos: {
-                documento: docValor,
-                titulo: tituloValor,
-                descripcion: descValor,
-                estado: estadoValor
-            }
-        });
+        const checkboxes = document.querySelectorAll('input[name="usuariosAsignados"]:checked');
+        const usuariosAsignados = Array.from(checkboxes).map(cb => cb.value);
         
-        // Mostrar error más específico al usuario
-        if (error.message.includes("CORS") || error.message.includes("fetch")) {
-            notificarError("Error de conexión: Verifica que el servidor backend esté corriendo en http://localhost:3000");
-        } else if (error.message.includes("404")) {
-            notificarError("Error: El servidor no encontró el recurso. Verifica la configuración del backend.");
-        } else if (error.message.includes("500")) {
-            notificarError("Error interno del servidor. Intenta nuevamente.");
-        } else {
-            notificarError("Hubo un error al guardar la tarea: " + error.message);
-        }
-    }
-});
+        const datos = {
+            titulo: tituloTarea.value.trim(),
+            descripcion: descripcionTarea.value.trim(),
+            usuarios_asignados: usuariosAsignados
+        };
 
-// ============================================
-// DELEGACION DE EVENTOS - EDITAR / ELIMINAR
-// ============================================
-
-listaTareas.addEventListener("click", async (e) => {
-
-    // ---- EDITAR ----
-    const btnEditar = e.target.closest(".btnEditarTarea");
-    if (btnEditar) {
-        const id = btnEditar.getAttribute("data-id");
-        const card = listaTareas.querySelector("[data-id='" + id + "']");
-
-        if (card) {
-            docTarea.value = card.querySelector(".tareaInfo p:first-child").textContent.replace("Documento:", "").trim();
-            tituloTarea.value = card.querySelector(".tareaTitulo").textContent;
-            descripcionTarea.value = card.querySelector(".tareaDescripcion").textContent;
-            const spanEstado = card.querySelector(".tareaEstado");
-            if (selectEstadoTarea && spanEstado) selectEstadoTarea.value = spanEstado.textContent;
-            docTarea.disabled = true;
-            tareaEditandoId = id;
-            btnCrearTarea.textContent = "Actualizar Tarea";
-            formTarea.scrollIntoView({ behavior: "smooth" });
-        }
-    }
-
-    // ---- ELIMINAR ----
-    const btnEliminar = e.target.closest(".btnEliminarTarea");
-    if (btnEliminar) {
-        const idEliminar = btnEliminar.getAttribute("data-id");
-        if (confirm("¿Está seguro de eliminar esta tarea?")) {
-            try {
-                await eliminarTarea(idEliminar);
-                const cardEliminar = listaTareas.querySelector("[data-id='" + idEliminar + "']");
-                if (cardEliminar) cardEliminar.remove();
-
-                const cardsRestantes = listaTareas.querySelectorAll(".cardTarea");
-                if (cardsRestantes.length === 0) {
-                    const msg = document.createElement("p");
-                    msg.classList.add("msgNoTareas");
-                    msg.textContent = "No hay tareas para mostrar.";
-                    listaTareas.append(msg);
-                }
-
-                await actualizarTareasEnSistema();
-                notificarExito("Tarea eliminada correctamente");
-
-            } catch (error) {
-                console.error("Error al eliminar tarea:", error);
-                notificarError("No se pudo eliminar la tarea: " + error.message);
+        try {
+            if (tareaEditandoId !== null) {
+                await actualizarTarea(tareaEditandoId, datos);
+                notificarExito("Tarea actualizada");
+            } else {
+                await crearTarea(datos);
+                notificarExito("Tarea creada");
             }
-        }
-    }
-});
-
-// ============================================
-// EXPORTAR - RF04
-// ============================================
-
-if (btnExportar) {
-    btnExportar.addEventListener("click", () => {
-        const tareas = obtenerTodasLasTareas();
-        const procesado = procesarTareasParaExportar(tareas);
-        const exportado = exportarTareasJSON(procesado);
-        if (exportado) {
-            notificarExito("Tareas exportadas correctamente");
-        } else {
-            notificarInfo("No hay tareas para exportar");
+            await cargarTareasEnLista();
+            limpiarFormularioTarea();
+        } catch (error) {
+            notificarError("Error al guardar: " + error.message);
         }
     });
-}
 
-// ============================================
-// INICIALIZACIÓN
-// ============================================
+    listaTareas.addEventListener("click", async (e) => {
+        const btnEditar = e.target.closest(".btnEditarTarea");
+        if (btnEditar) {
+            const id = btnEditar.getAttribute("data-id");
+            const tareaActual = await getTareasById(id);
+            if (tareaActual) {
+                tituloTarea.value = tareaActual.titulo;
+                descripcionTarea.value = tareaActual.descripcion;
+                
+                const checkboxes = document.querySelectorAll('input[name="usuariosAsignados"]');
+                checkboxes.forEach(cb => {
+                    cb.checked = tareaActual.usuarios_asignados && 
+                                 tareaActual.usuarios_asignados.some(u => String(u.documento) === String(cb.value));
+                });
+                
+                tareaEditandoId = id;
+                btnCrearTarea.textContent = "Actualizar Tarea";
+                formTarea.scrollIntoView({ behavior: "smooth" });
+            }
+        }
 
-document.addEventListener("DOMContentLoaded", async () => {
-    await cargarTareasEnLista();
-});
+        const btnEliminar = e.target.closest(".btnEliminarTarea");
+        if (btnEliminar) {
+            const idEliminar = btnEliminar.getAttribute("data-id");
+            if (await confirmarAccion('¿Eliminar tarea?', 'Se borrará permanentemente')) {
+                try {
+                    await eliminarTarea(idEliminar);
+                    await cargarTareasEnLista();
+                    notificarExito("Tarea eliminada");
+                } catch (error) {
+                    notificarError(error.message);
+                }
+            }
+        }
+    });
+
+    if (btnExportar) {
+        btnExportar.addEventListener("click", () => {
+            const tareas = obtenerTareasFiltradas();
+            const procesado = procesarTareasParaExportar(tareas);
+            if (exportarTareasJSON(procesado)) {
+                notificarExito("Exportado correctamente");
+            } else {
+                notificarInfo("No hay tareas");
+            }
+        });
+    }
+};

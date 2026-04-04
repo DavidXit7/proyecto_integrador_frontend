@@ -1,0 +1,59 @@
+<!-- VISTA 1: Registro de Usuarios -->
+<div id="vistaUsuarios" class="vista">
+
+    <div class="vistaHeader">
+        <h1>Administrar usuarios</h1>
+        <div class="nav-spa">
+            <a href="#/tareas" class="btn btnPrimary">Ir a Tareas</a>
+            <a href="#/menu" class="btn btnPrimary">Ir a Menu Usuario</a>
+        </div>
+    </div>
+
+    <div class ="seccionRegistro">
+        <h2 class="formTitle">Registro de Usuarios</h2>
+        <form id="formUsuario" class="ucForm">
+            <div class="ucFormGroup">
+                <label for="documento" class="ucFormLabel">Documento</label>
+                <input type="text" name="documento" id="documento" class="ucFormInput" placeholder="Ingrese su documento">
+            </div>
+            <div class="ucFormGroup">
+                <label for="nombre" class="ucFormLabel">Nombre</label>
+                <input type="text" name="nombre" id="nombre" class="ucFormInput" placeholder="Ingrese su nombre">
+            </div>
+            <div class="ucFormGroup">
+                <p class="ucFormLabel">Genero</p>
+                <div id="generos" class="generos"></div>
+            </div>
+            <div class="ucFormGroup">
+                <p class="ucFormLabel">Ciudades</p>
+                <select name="ciudad" id="ciudadId" class="ucFormInput">
+                </select>
+            </div>
+            <div class="ucFormGroup">
+                <label for="correo" class="ucFormLabel">Correo</label>
+                <input type="text" name="correo" id="correo" class="ucFormInput" placeholder="Ingrese su correo">
+            </div>
+            <div class="ucFormGroup checkboxLine">
+                <label for="terminos" class="ucFormLabel">¿Acepta las politicas de tratamientos de datos?</label>
+                <input type="checkbox" id="terminos">
+            </div>
+            <div class="ucFormGroup">
+                <button class="btn btnPrimary" id="btnEnviar">Enviar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="seccionBuscar">
+        <h2>Buscar Usuario</h2>
+
+        <div class="buscarFila">
+            <input type="text" id="buscarDocumento" class="formInput" placeholder="Ingrese documento a buscar">
+            <button class="btn btnPrimary" id="btnBuscar">Buscar</button>
+        </div>
+
+        <div id="resultadoBusqueda"></div>
+    </div>
+
+    <div id="listaUsuarios" class="listaUsuarios"></div>
+
+</div>

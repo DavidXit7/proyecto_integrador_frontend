@@ -14,3 +14,5 @@
 /* Importo los estilos de la página crear usuarios */
 @import url(pages/estiloCrearTareas.css);
 /* Importo los estilos de la página crear tareas */
+@import url(pages/estiloMenuUsuario.css);
+/* Importo los estilos de la página menu usuario */

@@ -1,5 +1,6 @@
 export const getUsuarios = async () => {
   const solicitud = await fetch('http://localhost:3000/usuarios');
+  if (!solicitud.ok) throw new Error("Error " + solicitud.status + ": No se pudieron obtener los usuarios");
   const datos = await solicitud.json();
   return datos;
 };
@@ -30,25 +31,22 @@ export const crearUsuario = async (usuario) => {
 };
 
 export const actualizarUsuario = async (id, usuario) => {
-  const idNum = Number(id);
-  const solicitud = await fetch('http://localhost:3000/usuarios/' + idNum, {
+  const solicitud = await fetch(`http://localhost:3000/usuarios/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...usuario, id: idNum })
+    body: JSON.stringify({ ...usuario, id: id })
   });
-  if (!solicitud.ok) throw new Error("Status " + solicitud.status + ": No se pudo actualizar el usuario (ID: " + idNum + ")");
+  if (!solicitud.ok) throw new Error("Status " + solicitud.status + ": No se pudo actualizar el usuario (ID: " + id + ")");
   const datos = await solicitud.json();
   return datos;
 };
 
 export const eliminarUsuario = async (id) => {
-  const idNum = Number(id);
-  
-  const solicitud = await fetch('http://localhost:3000/usuarios/' + idNum, {
+  const solicitud = await fetch(`http://localhost:3000/usuarios/${id}`, {
     method: 'DELETE'
   });
 
-  if (!solicitud.ok) throw new Error("Status " + solicitud.status + ": No se pudo eliminar el usuario (ID: " + idNum + ")");
+  if (!solicitud.ok) throw new Error("Status " + solicitud.status + ": No se pudo eliminar el usuario (ID: " + id + ")");
   const datos = await solicitud.json();
   return datos;
 };

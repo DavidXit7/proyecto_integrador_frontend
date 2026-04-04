@@ -4,68 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD</title>
+    <title>Gestor de Tareas Profesional</title>
+    <!-- Los estilos se cargan una sola vez para toda la app -->
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 
 <body>
-
-    <!-- VISTA 1: Registro de Usuarios -->
-    <div id="vistaUsuarios" class="vista">
-
-        <div class="vistaHeader">
-            <h1>Registro de Usuarios</h1>
-            <a href="/view/formTareas.html" class="btn btnPrimary">Ir a Tareas</a>
+    <!-- CONTENEDOR PRINCIPAL DE LA SPA -->
+    <div id="app">
+        <!-- El router inyectará el contenido aquí -->
+        <div class="loader-container">
+            <p>Cargando aplicación...</p>
         </div>
-
-        <div>
-            <form id="formUsuario" class="ucForm">
-                <div class="ucFormGroup">
-                    <label for="documento" class="ucFormLabel">Documento</label>
-                    <input type="text" name="documento" id="documento" class="ucFormInput" placeholder="Ingrese su documento">
-                </div>
-                <div class="ucFormGroup">
-                    <label for="nombre" class="ucFormLabel">Nombre</label>
-                    <input type="text" name="nombre" id="nombre" class="ucFormInput" placeholder="Ingrese su nombre">
-                </div>
-                <div class="ucFormGroup">
-                    <p class="ucFormLabel">Genero</p>
-                    <div id="generos" class="generos"></div>
-                </div>
-                <div class="ucFormGroup">
-                    <label for="ciudad" class="ucFormLabel">Ciudades</label>
-                    <select name="ciudad" id="ciudadId" class="ucFormInput">
-                    </select>
-                </div>
-                <div class="ucFormGroup">
-                    <label for="correo" class="ucFormLabel">Correo</label>
-                    <input type="text" name="correo" id="correo" class="ucFormInput" placeholder="Ingrese su correo">
-                </div>
-                <div class="ucFormGroup checkboxLine">
-                    <label for="terminos" class="ucFormLabel">¿Acepta las politicas de tratamientos de datos?</label>
-                    <input type="checkbox" id="terminos">
-                </div>
-                <div class="ucFormGroup">
-                    <button class="btn btnPrimary" id="btnEnviar">Enviar</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="seccionBuscar">
-            <h2>Buscar Usuario</h2>
-
-            <div class="buscarFila">
-                <input type="text" id="buscarDocumento" class="formInput" placeholder="Ingrese documento a buscar">
-                <button class="btn btnPrimary" id="btnBuscar">Buscar</button>
-            </div>
-
-            <div id="resultadoBusqueda"></div>
-        </div>
-
-        <div id="listaUsuarios" class="listaUsuarios"></div>
-
     </div>
-    <script type="module" src="/src/app.js"></script> <!-- Aqui se ejecuta el app.js con el tipo modulo -->
+
+    <!-- PUNTO DE ENTRADA ÚNICO -->
+    <script type="module" src="/src/main.js"></script>
 </body>
 
 </html>

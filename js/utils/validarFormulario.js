@@ -1,84 +1,94 @@
 export const validar = (form, reglas) => {
   const errores = {}
   let formValido = true;
+
   for (const name in reglas) {
-    // Obtenemos el elemento del formulario por el nombre
+    // Obtenemos el elemento del formulario por el nombre o ID
     const campo = form.elements[name];
-    // Obtenemos la regla de validacion por el campo
     const regla = reglas[name];
 
     if (!campo) continue;
 
-    // validamos si es una lista de elementos
-    if (campo instanceof NodeList) {
-      if (regla.required) {
-        let { esValido, mensaje } = validarNodos(campo, name, regla)
-        if (!esValido) {
-          formValido = false;
-          errores[name] = mensaje;
-        }
+    // Validación para NodeList (Radios, Checkboxes compartidos)
+    if (campo instanceof NodeList || (campo.length > 0 && campo[0].type === "radio")) {
+      let { esValido, mensaje } = validarGrupo(campo, regla)
+      if (!esValido) {
+        formValido = false;
+        errores[name] = mensaje;
       }
     } else {
-      if (campo.type == "text" || campo.tagName === "SELECT") {
-        let { esValido, mensaje } = validarCamposTipoText(campo, regla);
-        if (!esValido) {
-          formValido = false;
-          errores[name] = mensaje;
-        }
+      // Validación para elementos individuales (input, select, textarea)
+      let { esValido, mensaje } = validarCampoIndividual(campo, regla);
+      if (!esValido) {
+        formValido = false;
+        errores[name] = mensaje;
       }
     }
   }
-  // Validamos si objeto errores no tiene error registrado
-  if (Object.keys(errores).length != 0) {
-    console.log("tiene errores");
-    formValido = false
-  }
-  // Retornamos el objeto con la validación del formulario y los errores si los tiene
+
   return { valido: formValido, errores };
 }
 
-const validarNodos = (nodo, name, regla) => {
-  let esValido = false;
-  for (const key of nodo) {
-    if (key.checked) {
-      return {
-        esValido: true,
-      }
+/**
+ * Valida grupos de elementos (Radios o Checkboxes)
+ */
+const validarGrupo = (nodos, regla) => {
+  if (!regla.required) return { esValido: true };
+  
+  let checked = false;
+  for (const nodo of nodos) {
+    if (nodo.checked) {
+      checked = true;
+      break;
     }
   }
+
   return {
-    esValido,
-    mensaje: regla.mensaje,
+    esValido: checked,
+    mensaje: regla.mensaje || "Debes seleccionar al menos una opción"
   }
 }
 
 /**
- * Función para validar los campos de tipo texto.
- * 
- * @param {HTMLElement} radio - Elemento de tipo radio 
- * @param {Object} regla - Reglas de validación por nombre de campo
- * @returns {Object} - {esValido: boolean, mensaje: string}
+ * Valida un campo individual (input, select, textarea)
  */
-const validarCamposTipoText = (elemento, regla) => {
-  if (regla.required && elemento.value == "") {
+const validarCampoIndividual = (elemento, regla) => {
+  const valor = elemento.value ? elemento.value.trim() : "";
+
+  // 1. Regla de Obligatoriedad
+  if (regla.required && valor === "") {
     return {
       esValido: false,
-      mensaje: regla.mensaje,
+      mensaje: regla.mensaje || "Este campo es obligatorio"
     }
   }
-  if (regla.required && regla.min > elemento.value.length) {
+
+  // Si el campo está vacío y no es obligatorio, no aplicamos el resto de reglas (Regex, min, max)
+  if (valor === "") return { esValido: true };
+
+  // 2. Regla de Mínimo
+  if (regla.min && valor.length < regla.min) {
     return {
       esValido: false,
-      mensaje: "El campo debe tener como minimo " + regla.min + " de campos",
+      mensaje: regla.mensajeMin || `Debe tener al menos ${regla.min} caracteres`
     }
   }
-  if (regla.required && regla.max < elemento.value.length) {
+
+  // 3. Regla de Máximo
+  if (regla.max && valor.length > regla.max) {
     return {
       esValido: false,
-      mensaje: "El campo debe tener como maximo " + regla.max + " de campos",
+      mensaje: regla.mensajeMax || `Debe tener máximo ${regla.max} caracteres`
     }
   }
-  return {
-    esValido: true
+
+  // 4. Regla de Patrón (Expresión Regular)
+  if (regla.pattern && !regla.pattern.test(valor)) {
+    return {
+      esValido: false,
+      mensaje: regla.mensajePattern || "Formato de texto no válido"
+    }
   }
+
+  return { esValido: true };
 }
