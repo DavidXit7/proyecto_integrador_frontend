@@ -1,5 +1,6 @@
 export const getUsuarios = async () => {
   const solicitud = await fetch('http://localhost:3000/usuarios');
+  if (!solicitud.ok) throw new Error("Error " + solicitud.status + ": No se pudieron obtener los usuarios");
   const datos = await solicitud.json();
   return datos;
 };
