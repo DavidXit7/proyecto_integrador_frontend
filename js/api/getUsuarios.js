@@ -46,7 +46,9 @@ export const eliminarUsuario = async (id) => {
     method: 'DELETE'
   });
 
-  if (!solicitud.ok) throw new Error("Status " + solicitud.status + ": No se pudo eliminar el usuario (ID: " + id + ")");
   const datos = await solicitud.json();
+  if (!solicitud.ok) {
+    throw new Error(datos.msn || "Status " + solicitud.status + ": No se pudo eliminar el usuario (ID: " + id + ")");
+  }
   return datos;
 };
